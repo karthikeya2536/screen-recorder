@@ -22,6 +22,7 @@ export default function Home() {
     if (videoUrl) URL.revokeObjectURL(videoUrl);
     setVideoUrl(null);
     setIsEditing(false);
+    setUploadedUrl(null);
   };
 
   const handleTrimSave = (trimmedBlob: Blob) => {
@@ -37,6 +38,7 @@ export default function Home() {
   };
 
   const [isUploading, setIsUploading] = useState(false);
+  const [uploadedUrl, setUploadedUrl] = useState<string | null>(null);
 
   const handleUpload = async () => {
     if (!recordedBlob) return;
@@ -54,7 +56,7 @@ export default function Home() {
         const data = await res.json();
         
         if (data.url) {
-            window.location.href = data.url;
+            setUploadedUrl(`${window.location.origin}${data.url}`);
         } else {
             alert("Upload failed");
         }
@@ -115,40 +117,83 @@ export default function Home() {
               />
             )}
 
-            <div className="flex flex-wrap gap-4 justify-center">
-              <button 
-                onClick={handleReset}
-                className="px-6 py-2 rounded-lg border border-slate-600 hover:bg-slate-800 transition-colors"
-                title="Discard and record again"
-              >
-                Discard
-              </button>
-              
-              <button 
-                className="flex items-center gap-2 px-6 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-medium transition-colors"
-                title="Trim video"
-                onClick={() => setIsEditing(true)}
-              >
-                <Scissors className="w-4 h-4" />
-                Trim
-              </button>
+            {uploadedUrl ? (
+                <div className="w-full max-w-md bg-slate-900 border border-emerald-500/50 rounded-xl p-6 flex flex-col gap-4 animate-in fade-in slide-in-from-bottom-4">
+                    <div className="flex items-center gap-2 text-emerald-400 font-bold">
+                        <Share2 className="w-5 h-5" />
+                        <span>Upload Complete!</span>
+                    </div>
+                    
+                    <p className="text-sm text-slate-400">Share this link with anyone:</p>
+                    
+                    <div className="flex gap-2">
+                        <input 
+                            readOnly 
+                            value={uploadedUrl} 
+                            className="flex-1 bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-300 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                        />
+                        <button 
+                            onClick={() => {
+                                navigator.clipboard.writeText(uploadedUrl);
+                                alert("Link Copied!");
+                            }}
+                            className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                        >
+                            Copy
+                        </button>
+                    </div>
 
-              <button 
-                className="flex items-center gap-2 px-6 py-2 rounded-lg bg-green-600 hover:bg-green-700 text-white font-medium transition-colors disabled:opacity-50"
-                title="Upload and share"
-                onClick={handleUpload}
-                disabled={isUploading}
-              >
-                {isUploading ? (
-                    <>Uploading...</>
-                ) : (
-                    <>
-                    <Upload className="w-4 h-4" />
-                    Upload & Share
-                    </>
-                )}
-              </button>
-            </div>
+                    <a 
+                        href={uploadedUrl}
+                        target="_blank"
+                        className="text-center text-sm text-indigo-400 hover:text-indigo-300 hover:underline"
+                    >
+                        View Public Page &rarr;
+                    </a>
+                    
+                    <button 
+                        onClick={handleReset}
+                        className="mt-2 text-slate-500 hover:text-slate-300 text-sm"
+                    >
+                        Record Another Video
+                    </button>
+                </div>
+            ) : (
+                <div className="flex flex-wrap gap-4 justify-center">
+                <button 
+                    onClick={handleReset}
+                    className="px-6 py-2 rounded-lg border border-slate-600 hover:bg-slate-800 transition-colors"
+                    title="Discard and record again"
+                >
+                    Discard
+                </button>
+                
+                <button 
+                    className="flex items-center gap-2 px-6 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-medium transition-colors"
+                    title="Trim video"
+                    onClick={() => setIsEditing(true)}
+                >
+                    <Scissors className="w-4 h-4" />
+                    Trim
+                </button>
+
+                <button 
+                    className="flex items-center gap-2 px-6 py-2 rounded-lg bg-green-600 hover:bg-green-700 text-white font-medium transition-colors disabled:opacity-50"
+                    title="Upload and share"
+                    onClick={handleUpload}
+                    disabled={isUploading}
+                >
+                    {isUploading ? (
+                        <>Uploading...</>
+                    ) : (
+                        <>
+                        <Upload className="w-4 h-4" />
+                        Upload & Share
+                        </>
+                    )}
+                </button>
+                </div>
+            )}
           </div>
         )}
       </div>

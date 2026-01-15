@@ -57,6 +57,8 @@ export default function SharePage() {
                             controls 
                             className="w-full h-full"
                             autoPlay
+                            playsInline
+                            preload="metadata"
                             onEnded={() => {
                                 fetch('/api/analytics/complete', {
                                     method: 'POST',
