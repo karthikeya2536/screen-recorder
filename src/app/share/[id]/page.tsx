@@ -8,12 +8,18 @@ export default function SharePage() {
     const params = useParams();
     const id = params?.id as string;
     const [views, setViews] = useState(0);
-
-    // Assuming we save as .webm in uploads
-    const videoUrl = `/uploads/${id}.webm`;
+    const [videoUrl, setVideoUrl] = useState<string | null>(null);
 
     useEffect(() => {
         if (!id) return;
+
+        // Get Video URL
+        fetch(`/api/video/${id}`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.url) setVideoUrl(data.url);
+            })
+            .catch(console.error);
 
         // Register view
         fetch('/api/analytics/view', {
@@ -45,24 +51,30 @@ export default function SharePage() {
                 </div>
 
                 <div className="relative aspect-video bg-black rounded-xl overflow-hidden border border-slate-800 shadow-2xl">
-                    <video 
-                        src={videoUrl} 
-                        controls 
-                        className="w-full h-full"
-                        autoPlay
-                        onEnded={() => {
-                            fetch('/api/analytics/complete', {
-                                method: 'POST',
-                                body: JSON.stringify({ id }),
-                                headers: { 'Content-Type': 'application/json' }
-                            }).catch(console.error);
-                        }}
-                    />
+                    {videoUrl ? (
+                        <video 
+                            src={videoUrl} 
+                            controls 
+                            className="w-full h-full"
+                            autoPlay
+                            onEnded={() => {
+                                fetch('/api/analytics/complete', {
+                                    method: 'POST',
+                                    body: JSON.stringify({ id }),
+                                    headers: { 'Content-Type': 'application/json' }
+                                }).catch(console.error);
+                            }}
+                        />
+                    ) : (
+                        <div className="w-full h-full flex items-center justify-center text-slate-500">
+                            Loading video...
+                        </div>
+                    )}
                 </div>
 
                 <div className="flex justify-center">
                     <a 
-                        href={videoUrl} 
+                        href={videoUrl || '#'} 
                         download={`recording-${id}.webm`}
                         className="flex items-center gap-2 px-6 py-3 bg-slate-800 hover:bg-slate-700 rounded-full transition-colors text-slate-200 font-medium"
                     >

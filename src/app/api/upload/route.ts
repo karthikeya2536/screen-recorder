@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { writeFile, mkdir } from 'fs/promises';
-import { join } from 'path';
+import { put } from '@vercel/blob';
 import { randomUUID } from 'crypto';
+import { saveVideoMetadata } from '@/lib/db';
 
 export async function POST(request: NextRequest) {
   try {
@@ -12,35 +12,24 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'No file uploaded' }, { status: 400 });
     }
 
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
-
     // Create unique ID
     const id = randomUUID();
     const filename = `${id}.webm`;
     
-    // Ensure upload dir exists (in public/uploads relative to CWD)
-    // In Vercel usage, this isn't persistent. But for assignment/local demo it works.
-    // We'll use process.cwd() / public / uploads
-    const uploadDir = join(process.cwd(), 'public', 'uploads');
-    
-    // Ensure dir exists (redundant if I made it, but good for safety)
-    try {
-        await mkdir(uploadDir, { recursive: true });
-    } catch (e) {}
+    // Upload to Vercel Blob
+    const blob = await put(filename, file, { 
+        access: 'public',
+        addRandomSuffix: false // We use UUID, so collision unlikely
+    });
 
-    const filepath = join(uploadDir, filename);
-    await writeFile(filepath, buffer);
-
-    // Also Initialize simple analytics? 
-    // We can just rely on file existence for now, or create a json entry.
-    // Let's create a metadata file side-by-side or just keeping it simple.
+    // Save metadata
+    await saveVideoMetadata(id, blob.url);
 
     return NextResponse.json({ 
         success: true, 
         id, 
         url: `/share/${id}`,
-        videoUrl: `/uploads/${filename}` 
+        videoUrl: blob.url // Return direct URL too if client wants it
     });
 
   } catch (error) {
