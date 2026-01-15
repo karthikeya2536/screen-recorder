@@ -23,6 +23,7 @@ export default function Home() {
     setVideoUrl(null);
     setIsEditing(false);
     setUploadedUrl(null);
+    setDirectUrl(null);
   };
 
   const handleTrimSave = (trimmedBlob: Blob) => {
@@ -39,6 +40,7 @@ export default function Home() {
 
   const [isUploading, setIsUploading] = useState(false);
   const [uploadedUrl, setUploadedUrl] = useState<string | null>(null);
+  const [directUrl, setDirectUrl] = useState<string | null>(null);
 
   const handleUpload = async () => {
     if (!recordedBlob) return;
@@ -57,6 +59,7 @@ export default function Home() {
         
         if (data.url) {
             setUploadedUrl(`${window.location.origin}${data.url}`);
+            if (data.videoUrl) setDirectUrl(data.videoUrl);
         } else {
             alert("Upload failed");
         }
@@ -80,6 +83,7 @@ export default function Home() {
             href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
             target="_blank"
             rel="noopener noreferrer"
+            title="Deploy with Vercel"
           >
            By Antigravity
           </a>
@@ -124,32 +128,68 @@ export default function Home() {
                         <span>Upload Complete!</span>
                     </div>
                     
-                    <p className="text-sm text-slate-400">Share this link with anyone:</p>
-                    
-                    <div className="flex gap-2">
-                        <input 
-                            readOnly 
-                            value={uploadedUrl} 
-                            className="flex-1 bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-300 focus:outline-none focus:ring-1 focus:ring-emerald-500"
-                        />
-                        <button 
-                            onClick={() => {
-                                navigator.clipboard.writeText(uploadedUrl);
-                                alert("Link Copied!");
-                            }}
-                            className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
-                        >
-                            Copy
-                        </button>
+                    <div className="space-y-4">
+                        <div>
+                            <p className="text-xs text-slate-400 mb-1 uppercase font-semibold">Share Page (With Views)</p>
+                            <div className="flex gap-2">
+                                <input 
+                                    readOnly 
+                                    value={uploadedUrl} 
+                                    className="flex-1 bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-300 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                                />
+                                <button 
+                                    onClick={() => {
+                                        navigator.clipboard.writeText(uploadedUrl);
+                                        alert("Link Copied!");
+                                    }}
+                                    className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                                >
+                                    Copy
+                                </button>
+                            </div>
+                        </div>
+
+                        {directUrl && (
+                            <div>
+                                <p className="text-xs text-slate-400 mb-1 uppercase font-semibold">Direct File (.webm)</p>
+                                <div className="flex gap-2">
+                                    <input 
+                                        readOnly 
+                                        value={directUrl} 
+                                        className="flex-1 bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-300 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                    />
+                                    <button 
+                                        onClick={() => {
+                                            navigator.clipboard.writeText(directUrl);
+                                            alert("Direct Link Copied!");
+                                        }}
+                                        className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                                    >
+                                        Copy
+                                    </button>
+                                </div>
+                            </div>
+                        )}
                     </div>
 
-                    <a 
-                        href={uploadedUrl}
-                        target="_blank"
-                        className="text-center text-sm text-indigo-400 hover:text-indigo-300 hover:underline"
-                    >
-                        View Public Page &rarr;
-                    </a>
+                    <div className="flex justify-center gap-4 text-sm mt-2">
+                        <a 
+                            href={uploadedUrl}
+                            target="_blank"
+                            className="text-indigo-400 hover:text-indigo-300 hover:underline"
+                        >
+                            Open Share Page
+                        </a>
+                        {directUrl && (
+                             <a 
+                                href={directUrl}
+                                target="_blank"
+                                className="text-blue-400 hover:text-blue-300 hover:underline"
+                            >
+                                Open Video File
+                            </a>
+                        )}
+                    </div>
                     
                     <button 
                         onClick={handleReset}
